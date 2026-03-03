@@ -56,8 +56,6 @@ public class DynamicProgrammingSeamFinder implements SeamFinder {
         int currY = minY;
 
         for(int x = width - 1; x > 0; x--) {
-            double currCost = dp[x][currY];
-
             int bestY = currY;
             double bestPrev = dp[x - 1][currY];
 
