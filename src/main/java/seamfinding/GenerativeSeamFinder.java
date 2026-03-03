@@ -69,8 +69,14 @@ public class GenerativeSeamFinder implements SeamFinder {
         private final Node source = new Node() {
             @Override
             public List<Edge<Node>> neighbors(Picture picture, EnergyFunction f) {
-                // TODO: Replace with your code
-                throw new UnsupportedOperationException("Not implemented yet");
+                List<Edge<Node>> edges= new ArrayList<>();
+                int height = picture.height();
+                for (int y = 0; y < height; y++) {
+                    Pixel p = new Pixel(0,y);
+                    double w = f.apply(picture, 0, y);
+                    edges.add(new Edge<>(this, p, w));
+                }
+                return edges;
             }
         };
         /**
@@ -79,8 +85,7 @@ public class GenerativeSeamFinder implements SeamFinder {
         private final Node sink = new Node() {
             @Override
             public List<Edge<Node>> neighbors(Picture picture, EnergyFunction f) {
-                // TODO: Replace with your code
-                throw new UnsupportedOperationException("Not implemented yet");
+                return List.of();
             }
         };
 
@@ -126,8 +131,34 @@ public class GenerativeSeamFinder implements SeamFinder {
 
             @Override
             public List<Edge<Node>> neighbors(Picture picture, EnergyFunction f) {
-                // TODO: Replace with your code
-                throw new UnsupportedOperationException("Not implemented yet");
+                List<Edge<Node>> edges = new ArrayList<>();
+                int width = picture.width();
+                int height = picture.height();
+
+                if ( x == width - 1) {
+                    edges.add(new Edge<>(this, sink, 0.0));
+                    return edges;
+                }
+
+                int nextX = x + 1;
+
+                if(y > 0) {
+                    Pixel up = new Pixel(nextX, y - 1);
+                    double wUp = f.apply(picture, nextX, y - 1);
+                    edges.add(new Edge<>(this, up, wUp));
+                }
+
+                Pixel mid = new Pixel(nextX, y);
+                double wMid = f.apply(picture, nextX, y);
+                edges.add(new Edge<>(this, mid, wMid));
+
+                if ( y < height - 1) {
+                    Pixel down = new Pixel(nextX, y + 1);
+                    double w = f.apply(picture, nextX, y + 1);
+                    edges.add(new Edge<>(this, down, w));
+                }
+                
+                return edges;
             }
 
             @Override
