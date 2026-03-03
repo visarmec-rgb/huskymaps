@@ -24,9 +24,33 @@ public class ToposortDAGSolver<V> implements ShortestPathSolver<V> {
     public ToposortDAGSolver(Graph<V> graph, V start) {
         edgeTo = new HashMap<>();
         distTo = new HashMap<>();
-        // TODO: Replace with your code
-        throw new UnsupportedOperationException("Not implemented yet");
+        
+       distTo.put(start, 0.0);
+
+       List<V> postorder = new ArrayList<>();
+       Set<V> visited = new HashSet<>();
+       dfsPostOrder(graph, start, visited, postorder);
+
+       Collections.reverse(postorder);
+
+       for ( V v : postorder) {
+        double distV = distTo.getOrDefault(v, Double.POSITIVE_INFINITY);
+
+        if(distV == Double.POSITIVE_INFINITY) {
+            continue;
+        }
+
+        for (Edge<V> e : graph.neighbors(v)) {
+            V w = e.to;
+            double newDist = distV + e.weight;
+
+            if(newDist < distTo.getOrDefault(w, Double.POSITIVE_INFINITY)) {
+                distTo.put(w, newDist);
+                edgeTo.put(w, e);
+            }
+        }
     }
+}
 
     /**
      * Recursively adds nodes from the graph to the result in DFS postorder from the start vertex.
@@ -37,8 +61,13 @@ public class ToposortDAGSolver<V> implements ShortestPathSolver<V> {
      * @param result  the destination for adding nodes.
      */
     private void dfsPostOrder(Graph<V> graph, V start, Set<V> visited, List<V> result) {
-        // TODO: Replace with your code
-        throw new UnsupportedOperationException("Not implemented yet");
+        if(visited.contains(start)) return;
+        visited.add(start);
+
+        for(Edge<V> e : graph.neighbors(start)) {
+            dfsPostOrder(graph, e.to, visited, result);
+        }
+        result.add(start);
     }
 
     @Override
