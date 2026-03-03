@@ -44,6 +44,37 @@ We've provided a reference implementation that will help us evaluate the perform
 `ArrayListDeque` uses an `ArrayList` to implement the `Deque` functionality. But it's an implementation detail: since any programmer using `ArrayListDeque` will not be able to access this underlying `ArrayList` because it is _encapsulated_ with private fields.
 </details>
 
+### Example Usage
+After adding a list of elements [-1, 0, 1, 2, 3, 4] to a `Deque`, we perform a sequence of add and remove operations at both ends. After those operations, the elements remaining in the `Deque` will be [-2, -1, 0].
+```java
+@Example
+void confusingTest() {
+    Deque<Integer> deque = createDeque();
+
+    for (int x : List.of(-1, 0, 1, 2, 3, 4)) {
+        deque.addLast(x);
+    }
+
+    assertEquals(-1, deque.removeFirst());
+    deque.addFirst(-1);
+    assertEquals(-1, deque.get(0));
+
+    deque.addLast(5);
+    deque.addFirst(-2);
+    deque.addFirst(-3);
+
+    // Test a tricky sequence of removes
+    assertEquals(-3, deque.removeFirst());
+    assertEquals(5, deque.removeLast());
+    assertEquals(4, deque.removeLast());
+    assertEquals(3, deque.removeLast());
+    assertEquals(2, deque.removeLast());
+
+    int actual = deque.removeLast();
+    assertEquals(1, actual);
+}
+```
+
 ## Design and implement
 
 The focus of this course is not only to build programs that work according to specifications but also to compare different approaches and evaluate the consequences of our designs. In this project, we'll compare the `ArrayListDeque` reference implementation against two other ways to implement the `Deque` interface.
@@ -78,13 +109,20 @@ For example, we might _hypothesize_ that the problem is caused by the `newIndex`
 To develop a hypothesis, we can use the debugger to pause the program at any point in time. At each step, we can compare our thinking to the state of the debugger.
 
 > [!important]
-> State your hypothesis for the bug in the `ArrayDeque` class and the lines of code that you changed to address the hypothesis. Explain why this change was necessary to help maintain the integrity of the codebase.
-
+> State your hypothesis about the bug in the ArrayDeque class. Identify the specific line(s) of code you changed to address the hypothesis, including the line number(s). Explain why this change was necessary to help maintain the integrity of the codebase.
 ### Stage, commit, and push changes to GitLab
 
 Unlike collaboration tools like Google Docs that automatically save changes as we make them, Git requires us to manually version our code. This is helpful for programming because we often want to try-out a change, but we might not be immediately ready to share it with others until we've fully-tested the change and ensure it works as intended.
 
 Once we're satisfied with our implementations, the last step is to [stage and commit code changes](https://code.visualstudio.com/docs/sourcecontrol/intro-to-git#_staging-and-committing-code-changes). Provide a descriptive commit message that follows the scoped message style, such as "src: Fixed ArrayDeque.resize bug". You may choose a more specific scope, such as "deques: Fixed ArrayDeque.resize bug" to make the messages more useful for yourself in the future.
+
+> [!tip]
+> The first time you commit, Git may require you to configure your name and email in the terminal first.
+>
+> ```sh
+> git config --global user.name "YOUR NAME"
+> git config --global user.email email@uw.edu
+> ```
 
 After committing your changes, [push the commit](https://code.visualstudio.com/docs/sourcecontrol/intro-to-git#_pushing-and-pulling-remote-changes) to GitLab.
 
@@ -118,15 +156,13 @@ A `LinkedDeque` should always maintain the following invariants before and after
 To assist in debugging, we've provided a `checkInvariants` method that returns a string describing any problems with invariants (at the time the method is called), or null if there are no problems. Add debugging print statements with this `checkInvariants` method to help verify a hypothesis. Lastly, if the first try goes badly, don't be afraid to try again from scratch.
 
 > [!important]
-> To trace the behavior of your `LinkedDeque`, you will run the `LinkedDequeTests` class, which extends `DequeTests` and provides your `LinkedDeque` implementation via `createDeque()`. Running this test executes the inherited `addAndRemove` test on your `LinkedDeque`. When the test executes, it will output a visualization of the `LinkedDeque` state (produced by the `toString()` method) after each operation.
+> Trace through the `confusingTest` with your `LinkedDeque`.
 >
-> Trace through the **first 10 lines** of the visualization. For each line:
-> - Identify which deque method (`addFirst`, `addLast`, `removeFirst`, or `removeLast`) produced that line of output.
-> - Explain why the deque state appears as it does, referencing the relevant lines in your `LinkedDeque` implementation.
-> - Describe how the operation updates the internal structure of the deque, including which references or fields (`front`, `back`, `next`, `prev`, `size`) change.
+> 1. While walking through the code, draw a diagram of the `LinkedDeque` representation.
+> 1. Using the diagram, describe how each operation updates the internal structure of the `LinkedDeque`, including which references or fields (`front`, `back`, `next`, `prev`, `size`) change.
+> 1. Explain the arguments and return values of each method call.
 >
 > If the same method occurs multiple times, you only need to explain it the **first time**.
-
 
 As before, stage, commit, and push the `LinkedDeque` implementation to GitLab with a descriptive, scoped commit message.
 
@@ -141,16 +177,11 @@ In computer science, simpler solutions are typically preferred over more complic
 
 ### Experimental analysis
 
-At the bottom of [`DequeTests.java`](../../../test/java/deques/DequeTests.java) is a nested class called `RuntimeExperiments`. This nested class defines the code that will be used to evaluate the program's runtime by measuring how long it takes to run on your computer.
+At the bottom of [`DequeTests.java`](../../../test/java/deques/DequeTests.java) is a method called `runtimeExperiments` that evaluates the runtime of a `Deque` implementation by measuring how long it takes to run on your computer. By default, the program measures the time it takes to call `addLast` on a deque that already contains `size` elements.
 
-By default, the `RuntimeExperiments` class is annotated with the tag `@Disabled` right above the class header. Remove the `@Disabled` line and run the tests. For each implementation's `RuntimeExperiments`, open it to see the average time it takes to make a single call to `addLast` on a deque that already contains `size` number of elements.
-
-Copy-paste each result into its own [Desmos graphing calculator](https://www.desmos.com/calculator) to plot all the points.
+The `main` method of each testing class like `ArrayListDequeTests` calls `runtimeExperiments` method. Run each testing class and copy-paste each result into its own [Desmos graphing calculator](https://www.desmos.com/calculator) to plot all the points. Ensure that your plots are legible by adding labels or a legend.
 
 > [!important]
 > Compare your plots for the `addLast` method between all three implementations: `ArrayListDeque`, `ArrayDeque`, and `LinkedDeque`. Then, identify an operation that should show a significant difference between `ArrayListDeque` and the `ArrayDeque`, and modify the `RuntimeExperiments` class so that it measures this difference. Compare your new plots to confirm that `ArrayDeque` is more efficient than `ArrayListDeque` for your operation.
 
-To modify the `RuntimeExperiments` class to measure the runtime of a specific operation, change the call to `deque.addLast(size)` in the inner-most loop to the operation. Finally, change the following `deque.removeLast()` call to perform the opposite operation. For example, to measure the runtime of `removeLast`, then the opposite operation would be `addLast`.
-
-> [!caution]
-> Enabling the `RuntimeExperiments` class will significantly increase the overall time it takes to run tests. Be careful about staging changes to avoid mistakenly pushing a commit enabling `RuntimeExperiments`. If that happens, cancel the pipeline in GitLab and correct the situation by making a new commit that re-disables the `RuntimeExperiments` class.
+To modify the `runtimeExperiments` to measure the runtime of a specific operation, change the call to `deque.addLast(size)` in the inner-most loop to the desired operation. Finally, change the following `deque.removeLast()` call to perform the opposite operation. For example, to measure the runtime of `removeLast`, then the opposite operation would be `addLast`.
