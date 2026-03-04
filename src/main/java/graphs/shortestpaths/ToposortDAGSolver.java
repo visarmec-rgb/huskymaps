@@ -61,14 +61,29 @@ public class ToposortDAGSolver<V> implements ShortestPathSolver<V> {
      * @param result  the destination for adding nodes.
      */
     private void dfsPostOrder(Graph<V> graph, V start, Set<V> visited, List<V> result) {
-        if(visited.contains(start)) return;
-        visited.add(start);
+        Deque<V> stack = new ArrayDeque<>();
+        Deque<V> postStack = new ArrayDeque<>();
 
-        for(Edge<V> e : graph.neighbors(start)) {
-            dfsPostOrder(graph, e.to, visited, result);
+        stack.push(start);
+
+        while (!stack.isEmpty()) {
+            V v = stack.pop();
+            if (visited.contains(v)) continue;
+            visited.add(v);
+            postStack.push(v);
+
+            for (Edge<V> e : graph.neighbors(v)) {
+                if (!visited.contains(e.to)) {
+                    stack.push(e.to);
+                }
+            }
         }
-        result.add(start);
+
+        while (!postStack.isEmpty()) {
+            result.add(postStack.pop());
+        }
     }
+
 
     @Override
     public List<V> solution(V goal) {
